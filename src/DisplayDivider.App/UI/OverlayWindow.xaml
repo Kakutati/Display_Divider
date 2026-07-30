@@ -1,0 +1,13 @@
+<Window x:Class="DisplayDivider.App.UI.OverlayWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ShowInTaskbar="False"
+        ShowActivated="False"
+        Topmost="True"
+        ResizeMode="NoResize"
+        WindowStartupLocation="Manual">
+    <Canvas x:Name="ZoneCanvas" />
+</Window>
