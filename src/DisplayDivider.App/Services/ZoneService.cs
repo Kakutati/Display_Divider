@@ -29,9 +29,13 @@ public sealed class ZoneService
         Config.Monitors.FirstOrDefault(m => m.DeviceName == deviceName)?.Zones
         ?? (IReadOnlyList<FractionRect>)Array.Empty<FractionRect>();
 
+    /// <summary>존 계산의 기준 사각형. 기본은 작업 영역(작업표시줄 제외).</summary>
+    public PixelRect BaseRect(MonitorInfo monitor) =>
+        Config.UseWorkArea ? monitor.WorkArea : monitor.Bounds;
+
     public List<PixelRect> ZonesFor(MonitorInfo monitor) =>
         FractionZonesFor(monitor.DeviceName)
-            .Select(z => LayoutEngine.ToPixels(z, monitor.Bounds))
+            .Select(z => LayoutEngine.ToPixels(z, BaseRect(monitor)))
             .ToList();
 
     public bool AnyZones => Monitors.Any(m => FractionZonesFor(m.DeviceName).Count > 0);

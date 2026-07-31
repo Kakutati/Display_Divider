@@ -43,5 +43,8 @@ public sealed class LayoutConfig
     /// <summary>최대화 시 존 크기로 가두기(가짜 최대화). Shift+최대화는 항상 전체 화면.</summary>
     public bool FakeMaximizeEnabled { get; set; } = true;
 
+    /// <summary>true면 존을 작업 영역(작업표시줄 제외) 기준으로 계산해 작업표시줄과 겹치지 않는다.</summary>
+    public bool UseWorkArea { get; set; } = true;
+
     public List<MonitorLayout> Monitors { get; set; } = new();
 }

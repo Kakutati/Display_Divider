@@ -48,6 +48,17 @@ public sealed class TrayIcon : IDisposable
             zones.Save();
         };
 
+        var workAreaItem = new WF.ToolStripMenuItem("작업표시줄 겹침 방지 (작업 영역 기준)")
+        {
+            Checked = zones.Config.UseWorkArea,
+            CheckOnClick = true,
+        };
+        workAreaItem.CheckedChanged += (_, _) =>
+        {
+            zones.Config.UseWorkArea = workAreaItem.Checked;
+            zones.Save();
+        };
+
         var reloadItem = new WF.ToolStripMenuItem("레이아웃 다시 읽기");
         reloadItem.Click += (_, _) => reload();
 
@@ -59,6 +70,7 @@ public sealed class TrayIcon : IDisposable
         menu.Items.Add(dragSnapItem);
         menu.Items.Add(ctrlSnapItem);
         menu.Items.Add(fakeMaxItem);
+        menu.Items.Add(workAreaItem);
         menu.Items.Add(new WF.ToolStripSeparator());
         menu.Items.Add(reloadItem);
         menu.Items.Add(exitItem);

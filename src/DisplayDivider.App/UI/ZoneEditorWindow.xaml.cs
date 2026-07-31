@@ -181,7 +181,7 @@ public partial class ZoneEditorWindow : Window
         }
         else
         {
-            var px = LayoutEngine.ToPixels(f, mon.Bounds);
+            var px = LayoutEngine.ToPixels(f, _zones.BaseRect(mon));
             ZoneWBox.Text = px.Width.ToString();
             ZoneHBox.Text = px.Height.ToString();
         }
@@ -204,8 +204,9 @@ public partial class ZoneEditorWindow : Window
         }
         if (SelectedMonitor is not { } mon) return;
 
-        double? w = ParseSize(ZoneWBox.Text, mon.Bounds.Width);
-        double? h = ParseSize(ZoneHBox.Text, mon.Bounds.Height);
+        var baseRect = _zones.BaseRect(mon);
+        double? w = ParseSize(ZoneWBox.Text, baseRect.Width);
+        double? h = ParseSize(ZoneHBox.Text, baseRect.Height);
         if (w is null && h is null)
         {
             StatusText.Text = "숫자 형식이 아닙니다 (예: 1280 또는 66.7)";
@@ -214,7 +215,7 @@ public partial class ZoneEditorWindow : Window
 
         ZoneEditOps.ResizeZone(_pending, _selected, w, h);
 
-        var applied = LayoutEngine.ToPixels(_pending[_selected], mon.Bounds);
+        var applied = LayoutEngine.ToPixels(_pending[_selected], baseRect);
         UpdateSizeBoxes();
         RedrawPreview();
         SetPendingStatus($"적용됨 — 실제 {applied.Width}×{applied.Height}px (이웃 최소 크기·모니터 경계에 따라 조정될 수 있음)");
@@ -295,8 +296,9 @@ public partial class ZoneEditorWindow : Window
         _selected = ZoneEditOps.ZoneAt(_pending, f.Fx, f.Fy);
         if (_selected >= 0 && SelectedMonitor is { } mon)
         {
-            var px = LayoutEngine.ToPixels(_pending[_selected], mon.Bounds);
-            StatusText.Text = $"존 {_selected + 1} 선택됨 — 위치 ({px.X - mon.Bounds.X}, {px.Y - mon.Bounds.Y}), 크기 {px.Width}×{px.Height}px";
+            var baseRect = _zones.BaseRect(mon);
+            var px = LayoutEngine.ToPixels(_pending[_selected], baseRect);
+            StatusText.Text = $"존 {_selected + 1} 선택됨 — 위치 ({px.X - baseRect.X}, {px.Y - baseRect.Y}), 크기 {px.Width}×{px.Height}px";
         }
         RedrawPreview();
         UpdateSizeBoxes();
@@ -388,18 +390,32 @@ public partial class ZoneEditorWindow : Window
         double ch = PreviewCanvas.ActualHeight;
         if (cw < 40 || ch < 40) return;
 
+        var baseRect = _zones.BaseRect(mon);
         double scale = Math.Min((cw - 16) / mon.Bounds.Width, (ch - 16) / mon.Bounds.Height);
-        _monW = mon.Bounds.Width * scale;
-        _monH = mon.Bounds.Height * scale;
-        _ox = (cw - _monW) / 2;
-        _oy = (ch - _monH) / 2;
+        double monW = mon.Bounds.Width * scale;
+        double monH = mon.Bounds.Height * scale;
+        double monX = (cw - monW) / 2;
+        double monY = (ch - monH) / 2;
 
+        // 존 좌표 변환은 기준 영역(작업 영역) 기준
+        _monW = baseRect.Width * scale;
+        _monH = baseRect.Height * scale;
+        _ox = monX + (baseRect.X - mon.Bounds.X) * scale;
+        _oy = monY + (baseRect.Y - mon.Bounds.Y) * scale;
+
+        // 모니터 전체(작업표시줄 포함)는 회색, 작업 영역은 흰색으로 구분
+        PreviewCanvas.Children.Add(Positioned(new Rectangle
+        {
+            Width = monW,
+            Height = monH,
+            Stroke = Brushes.DimGray,
+            StrokeThickness = 2,
+            Fill = new SolidColorBrush(Color.FromArgb(0xFF, 0xC8, 0xC8, 0xC8)),
+        }, monX, monY));
         PreviewCanvas.Children.Add(Positioned(new Rectangle
         {
             Width = _monW,
             Height = _monH,
-            Stroke = Brushes.DimGray,
-            StrokeThickness = 2,
             Fill = Brushes.White,
         }, _ox, _oy));
 
@@ -426,10 +442,10 @@ public partial class ZoneEditorWindow : Window
                 Fill = isSelected ? selectedFill : zoneFill,
             }, zx + 1, zy + 1));
 
-            // 존 번호 + 수치 정보 (모니터 기준 픽셀 좌표/크기와 백분율)
-            var px = LayoutEngine.ToPixels(f, mon.Bounds);
-            int localX = px.X - mon.Bounds.X;
-            int localY = px.Y - mon.Bounds.Y;
+            // 존 번호 + 수치 정보 (기준 영역 좌상단 기준 픽셀 좌표/크기와 백분율)
+            var px = LayoutEngine.ToPixels(f, baseRect);
+            int localX = px.X - baseRect.X;
+            int localY = px.Y - baseRect.Y;
 
             var label = new StackPanel();
             label.Children.Add(new TextBlock
