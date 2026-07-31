@@ -53,6 +53,7 @@ public static class Native
     public const int GWL_STYLE = -16;
     public const int GWL_EXSTYLE = -20;
     public const long WS_CHILD = 0x40000000L;
+    public const long WS_CAPTION = 0x00C00000L; // WS_BORDER | WS_DLGFRAME
     public const long WS_EX_TOOLWINDOW = 0x00000080L;
     public const long WS_EX_TRANSPARENT = 0x00000020L;
     public const long WS_EX_LAYERED = 0x00080000L;
@@ -86,6 +87,7 @@ public static class Native
 
     public delegate bool MonitorEnumProc(IntPtr hMonitor, IntPtr hdc, ref RECT rc, IntPtr data);
     public delegate void WinEventProc(IntPtr hook, uint ev, IntPtr hwnd, int idObject, int idChild, uint thread, uint time);
+    public delegate bool EnumWindowsProc(IntPtr hwnd, IntPtr lParam);
 
     [DllImport("user32.dll")]
     public static extern bool EnumDisplayMonitors(IntPtr hdc, IntPtr clip, MonitorEnumProc proc, IntPtr data);
@@ -149,6 +151,18 @@ public static class Native
 
     [DllImport("user32.dll")]
     public static extern uint GetDpiForWindow(IntPtr hwnd);
+
+    [DllImport("user32.dll")]
+    public static extern bool EnumWindows(EnumWindowsProc proc, IntPtr lParam);
+
+    [DllImport("user32.dll")]
+    public static extern uint GetWindowThreadProcessId(IntPtr hwnd, out uint pid);
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    public static extern int GetWindowTextW(IntPtr hwnd, StringBuilder sb, int max);
+
+    [DllImport("user32.dll")]
+    public static extern int GetWindowTextLengthW(IntPtr hwnd);
 
     [DllImport("dwmapi.dll")]
     public static extern int DwmGetWindowAttribute(IntPtr hwnd, int attr, out RECT rc, int cb);

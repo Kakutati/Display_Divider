@@ -15,9 +15,11 @@ public sealed class AppCoordinator : IDisposable
     OverlayManager? _overlays;
     SnapController? _snap;
     MaximizeController? _maximize;
+    FullscreenController? _fullscreen;
     HotkeyService? _hotkeys;
     TrayIcon? _tray;
     ZoneEditorWindow? _editor;
+    RulesWindow? _rules;
 
     public void Start()
     {
@@ -28,11 +30,12 @@ public sealed class AppCoordinator : IDisposable
         _overlays = new OverlayManager(_zones);
         _snap = new SnapController(_tracker, _zones, _overlays);
         _maximize = new MaximizeController(_tracker, _zones);
+        _fullscreen = new FullscreenController(_tracker, _zones);
 
         _hotkeys = new HotkeyService();
         _ = new HotkeyController(_hotkeys, _zones);
 
-        _tray = new TrayIcon(_zones, OpenEditor, () => _zones.Reload(), () => Application.Current.Shutdown());
+        _tray = new TrayIcon(_zones, OpenEditor, OpenRules, () => _zones.Reload(), () => Application.Current.Shutdown());
 
         SystemEvents.DisplaySettingsChanged += OnDisplaySettingsChanged;
 
@@ -56,6 +59,19 @@ public sealed class AppCoordinator : IDisposable
         _editor.Show();
     }
 
+    void OpenRules()
+    {
+        if (_zones is null) return;
+        if (_rules is { IsLoaded: true })
+        {
+            _rules.Activate();
+            return;
+        }
+        _rules = new RulesWindow(_zones);
+        _rules.Closed += (_, _) => _rules = null;
+        _rules.Show();
+    }
+
     public void Dispose()
     {
         SystemEvents.DisplaySettingsChanged -= OnDisplaySettingsChanged;
@@ -63,6 +79,7 @@ public sealed class AppCoordinator : IDisposable
         _hotkeys?.Dispose();
         _snap?.Dispose();
         _maximize?.Dispose();
+        _fullscreen?.Dispose();
         _overlays?.Dispose();
         _tracker?.Dispose();
     }

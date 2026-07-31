@@ -8,12 +8,15 @@ public sealed class TrayIcon : IDisposable
 {
     readonly WF.NotifyIcon _icon;
 
-    public TrayIcon(ZoneService zones, Action openEditor, Action reload, Action exit)
+    public TrayIcon(ZoneService zones, Action openEditor, Action openRules, Action reload, Action exit)
     {
         var menu = new WF.ContextMenuStrip();
 
         var editItem = new WF.ToolStripMenuItem("존 편집…");
         editItem.Click += (_, _) => openEditor();
+
+        var rulesItem = new WF.ToolStripMenuItem("전체화면 규칙…");
+        rulesItem.Click += (_, _) => openRules();
 
         var dragSnapItem = new WF.ToolStripMenuItem("드래그 스냅 사용")
         {
@@ -48,6 +51,17 @@ public sealed class TrayIcon : IDisposable
             zones.Save();
         };
 
+        var fullscreenItem = new WF.ToolStripMenuItem("전체화면 창 존 가두기 (규칙 기반)")
+        {
+            Checked = zones.Config.FullscreenConfineEnabled,
+            CheckOnClick = true,
+        };
+        fullscreenItem.CheckedChanged += (_, _) =>
+        {
+            zones.Config.FullscreenConfineEnabled = fullscreenItem.Checked;
+            zones.Save();
+        };
+
         var workAreaItem = new WF.ToolStripMenuItem("작업표시줄 겹침 방지 (작업 영역 기준)")
         {
             Checked = zones.Config.UseWorkArea,
@@ -66,10 +80,12 @@ public sealed class TrayIcon : IDisposable
         exitItem.Click += (_, _) => exit();
 
         menu.Items.Add(editItem);
+        menu.Items.Add(rulesItem);
         menu.Items.Add(new WF.ToolStripSeparator());
         menu.Items.Add(dragSnapItem);
         menu.Items.Add(ctrlSnapItem);
         menu.Items.Add(fakeMaxItem);
+        menu.Items.Add(fullscreenItem);
         menu.Items.Add(workAreaItem);
         menu.Items.Add(new WF.ToolStripSeparator());
         menu.Items.Add(reloadItem);

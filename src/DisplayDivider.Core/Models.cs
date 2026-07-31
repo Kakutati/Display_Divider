@@ -30,6 +30,21 @@ public sealed class MonitorLayout
     public List<FractionRect> Zones { get; set; } = new();
 }
 
+/// <summary>특정 앱의 테두리 없는 전체화면 창을 지정 존에 가두는 규칙.</summary>
+public sealed class AppRule
+{
+    /// <summary>프로세스 이름 (확장자 없이, 대소문자 무시. 예: "notepad").</summary>
+    public string ProcessName { get; set; } = "";
+
+    public bool Enabled { get; set; } = true;
+
+    /// <summary>대상 모니터 장치 이름 (예: \\.\DISPLAY1).</summary>
+    public string MonitorDevice { get; set; } = "";
+
+    /// <summary>대상 존 인덱스 (0부터).</summary>
+    public int ZoneIndex { get; set; }
+}
+
 public sealed class LayoutConfig
 {
     public int Version { get; set; } = 1;
@@ -45,6 +60,12 @@ public sealed class LayoutConfig
 
     /// <summary>true면 존을 작업 영역(작업표시줄 제외) 기준으로 계산해 작업표시줄과 겹치지 않는다.</summary>
     public bool UseWorkArea { get; set; } = true;
+
+    /// <summary>테두리 없는 전체화면 창을 규칙에 따라 존에 가두기.</summary>
+    public bool FullscreenConfineEnabled { get; set; } = true;
+
+    /// <summary>앱별 전체화면 가두기 규칙.</summary>
+    public List<AppRule> Rules { get; set; } = new();
 
     public List<MonitorLayout> Monitors { get; set; } = new();
 }
