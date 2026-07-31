@@ -12,8 +12,12 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" TextWrapping="Wrap" Foreground="#606060" Margin="0,0,0,10"
-                   Text="테두리 없는 전체화면(borderless) 창을 지정한 존에 가둡니다. 게임은 그래픽 설정에서 '테두리 없는 창 모드'로 실행해야 합니다. 독점 전체화면(exclusive)은 Phase 3에서 지원 예정입니다."/>
+        <StackPanel Grid.Row="0" Margin="0,0,0,10">
+            <TextBlock TextWrapping="Wrap" Foreground="#606060"
+                       Text="테두리 없는 전체화면(borderless) 창을 지정한 존에 가둡니다. 게임은 그래픽 설정에서 '테두리 없는 창 모드'로 실행해야 합니다. 독점 전체화면(exclusive)은 Phase 3에서 지원 예정입니다."/>
+            <TextBlock TextWrapping="Wrap" Foreground="#B05A00" Margin="0,6,0,0"
+                       Text="⚠ 지원 안 됨: Edge/Chrome 등 Chromium 브라우저의 F11 전체화면 — 브라우저가 전체화면 중 외부 창 이동을 무시하므로 가둘 수 없습니다. 브라우저는 일반 창 상태로 존에 스냅해서 사용하세요. 일부 게임도 같은 방식으로 저항하면 지원되지 않습니다."/>
+        </StackPanel>
 
         <Grid Grid.Row="1" Margin="0,0,0,10">
             <Grid.ColumnDefinitions>
