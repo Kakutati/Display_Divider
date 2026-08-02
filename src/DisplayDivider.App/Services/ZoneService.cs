@@ -20,25 +20,59 @@ public sealed class ZoneService
     public void RefreshMonitors()
     {
         Monitors = MonitorService.GetMonitors();
+        MigrateLayoutKeys();
         Changed?.Invoke();
+    }
+
+    /// <summary>
+    /// GDI 이름(\\.\DISPLAYn)은 재부팅 시 바뀔 수 있으므로 안정 ID를 기준으로 레이아웃을 유지한다.
+    /// - 안정 ID로 매칭된 레이아웃의 GDI 이름이 바뀌었으면 갱신
+    /// - 구버전 설정(안정 ID 없음)은 GDI 이름이 일치하는 연결된 모니터로 안정 ID를 백필
+    /// </summary>
+    void MigrateLayoutKeys()
+    {
+        bool dirty = false;
+        foreach (var mon in Monitors)
+        {
+            var byStable = Config.Monitors.FirstOrDefault(l => l.StableId == mon.StableId);
+            if (byStable is not null)
+            {
+                if (byStable.DeviceName != mon.DeviceName)
+                {
+                    byStable.DeviceName = mon.DeviceName;
+                    dirty = true;
+                }
+                continue;
+            }
+            var byName = Config.Monitors.FirstOrDefault(l => l.StableId is null && l.DeviceName == mon.DeviceName);
+            if (byName is not null)
+            {
+                byName.StableId = mon.StableId;
+                dirty = true;
+            }
+        }
+        if (dirty) Save();
     }
 
     public void Save() => LayoutStore.Save(Config);
 
-    public IReadOnlyList<FractionRect> FractionZonesFor(string deviceName) =>
-        Config.Monitors.FirstOrDefault(m => m.DeviceName == deviceName)?.Zones
-        ?? (IReadOnlyList<FractionRect>)Array.Empty<FractionRect>();
+    MonitorLayout? LayoutFor(MonitorInfo monitor) =>
+        Config.Monitors.FirstOrDefault(l => l.StableId == monitor.StableId)
+        ?? Config.Monitors.FirstOrDefault(l => l.StableId is null && l.DeviceName == monitor.DeviceName);
+
+    public IReadOnlyList<FractionRect> FractionZonesFor(MonitorInfo monitor) =>
+        LayoutFor(monitor)?.Zones ?? (IReadOnlyList<FractionRect>)Array.Empty<FractionRect>();
 
     /// <summary>존 계산의 기준 사각형. 기본은 작업 영역(작업표시줄 제외).</summary>
     public PixelRect BaseRect(MonitorInfo monitor) =>
         Config.UseWorkArea ? monitor.WorkArea : monitor.Bounds;
 
     public List<PixelRect> ZonesFor(MonitorInfo monitor) =>
-        FractionZonesFor(monitor.DeviceName)
+        FractionZonesFor(monitor)
             .Select(z => LayoutEngine.ToPixels(z, BaseRect(monitor)))
             .ToList();
 
-    public bool AnyZones => Monitors.Any(m => FractionZonesFor(m.DeviceName).Count > 0);
+    public bool AnyZones => Monitors.Any(m => FractionZonesFor(m).Count > 0);
 
     public (MonitorInfo Monitor, PixelRect Zone)? FindZoneAt(int x, int y)
     {
@@ -63,14 +97,16 @@ public sealed class ZoneService
                ?? Monitors.FirstOrDefault();
     }
 
-    public void SetZones(string deviceName, List<FractionRect> zones)
+    public void SetZones(MonitorInfo monitor, List<FractionRect> zones)
     {
-        var layout = Config.Monitors.FirstOrDefault(m => m.DeviceName == deviceName);
+        var layout = LayoutFor(monitor);
         if (layout is null)
         {
-            layout = new MonitorLayout { DeviceName = deviceName };
+            layout = new MonitorLayout();
             Config.Monitors.Add(layout);
         }
+        layout.DeviceName = monitor.DeviceName;
+        layout.StableId = monitor.StableId;
         layout.Zones = zones;
         Save();
         Changed?.Invoke();

@@ -28,6 +28,21 @@ public struct MONITORINFOEX
     public string szDevice;
 }
 
+[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+public struct DISPLAY_DEVICE
+{
+    public int cb;
+    [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
+    public string DeviceName;
+    [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
+    public string DeviceString;
+    public int StateFlags;
+    [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
+    public string DeviceID;
+    [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
+    public string DeviceKey;
+}
+
 [StructLayout(LayoutKind.Sequential)]
 public struct WINDOWPLACEMENT
 {
@@ -151,6 +166,11 @@ public static class Native
 
     [DllImport("user32.dll")]
     public static extern uint GetDpiForWindow(IntPtr hwnd);
+
+    public const uint EDD_GET_DEVICE_INTERFACE_NAME = 0x00000001;
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    public static extern bool EnumDisplayDevicesW(string? lpDevice, uint iDevNum, ref DISPLAY_DEVICE lpDisplayDevice, uint dwFlags);
 
     [DllImport("user32.dll")]
     public static extern bool EnumWindows(EnumWindowsProc proc, IntPtr lParam);

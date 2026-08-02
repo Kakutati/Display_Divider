@@ -42,8 +42,11 @@ public sealed class FullscreenController : IDisposable
         var rule = AppRules.Find(_zones.Config.Rules, processName);
         if (rule is null) return;
 
-        // 규칙이 지정한 모니터/존 (모니터가 사라졌으면 현재 모니터로 대체)
-        var targetMonitor = _zones.Monitors.FirstOrDefault(m => m.DeviceName == rule.MonitorDevice) ?? monitor;
+        // 규칙이 지정한 모니터/존 — 안정 ID 우선, 구버전 규칙은 GDI 이름으로 (모니터가 사라졌으면 현재 모니터로 대체)
+        var targetMonitor =
+            _zones.Monitors.FirstOrDefault(m => m.StableId == rule.MonitorStableId)
+            ?? _zones.Monitors.FirstOrDefault(m => rule.MonitorStableId is null && m.DeviceName == rule.MonitorDevice)
+            ?? monitor;
         var zones = _zones.ZonesFor(targetMonitor);
         if (zones.Count == 0) return;
         var zone = zones[Math.Clamp(rule.ZoneIndex, 0, zones.Count - 1)];

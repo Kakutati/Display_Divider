@@ -26,7 +26,12 @@ public readonly record struct PixelRect(int X, int Y, int Width, int Height)
 
 public sealed class MonitorLayout
 {
+    /// <summary>GDI 장치 이름(\\.\DISPLAYn). 표시용 + 구버전 설정 호환용.</summary>
     public string DeviceName { get; set; } = "";
+
+    /// <summary>모니터 하드웨어 기반 안정 ID. GDI 이름은 재부팅 시 바뀔 수 있으므로 이것으로 매칭한다.</summary>
+    public string? StableId { get; set; }
+
     public List<FractionRect> Zones { get; set; } = new();
 }
 
@@ -38,8 +43,11 @@ public sealed class AppRule
 
     public bool Enabled { get; set; } = true;
 
-    /// <summary>대상 모니터 장치 이름 (예: \\.\DISPLAY1).</summary>
+    /// <summary>대상 모니터 장치 이름 (예: \\.\DISPLAY1). 표시용 + 구버전 호환용.</summary>
     public string MonitorDevice { get; set; } = "";
+
+    /// <summary>대상 모니터의 안정 ID (하드웨어 기반). 있으면 이것으로 우선 매칭.</summary>
+    public string? MonitorStableId { get; set; }
 
     /// <summary>대상 존 인덱스 (0부터).</summary>
     public int ZoneIndex { get; set; }

@@ -54,7 +54,7 @@ public partial class RulesWindow : Window
         ZoneCombo.Items.Clear();
         if (SelectedMonitor is not { } mon) return;
 
-        int count = _zones.FractionZonesFor(mon.DeviceName).Count;
+        int count = _zones.FractionZonesFor(mon).Count;
         for (int i = 0; i < count; i++)
             ZoneCombo.Items.Add($"존 {i + 1}");
         if (count > 0)
@@ -89,6 +89,7 @@ public partial class RulesWindow : Window
             ProcessName = name,
             Enabled = true,
             MonitorDevice = mon.DeviceName,
+            MonitorStableId = mon.StableId,
             ZoneIndex = ZoneCombo.SelectedIndex,
         });
         _zones.Save();

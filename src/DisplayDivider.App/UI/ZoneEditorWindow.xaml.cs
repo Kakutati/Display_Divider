@@ -59,7 +59,7 @@ public partial class ZoneEditorWindow : Window
     void MonitorCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (SelectedMonitor is not { } mon) return;
-        _pending = _zones.FractionZonesFor(mon.DeviceName).ToList();
+        _pending = _zones.FractionZonesFor(mon).ToList();
         _selected = -1;
         StatusText.Text = "";
         RedrawPreview();
@@ -360,7 +360,7 @@ public partial class ZoneEditorWindow : Window
         if (SelectedMonitor is not { } mon) return;
         _pending = new List<FractionRect>();
         _selected = -1;
-        _zones.SetZones(mon.DeviceName, new List<FractionRect>());
+        _zones.SetZones(mon, new List<FractionRect>());
         StatusText.Text = "분할 해제됨";
         RedrawPreview();
     }
@@ -368,7 +368,7 @@ public partial class ZoneEditorWindow : Window
     void Save_Click(object sender, RoutedEventArgs e)
     {
         if (SelectedMonitor is not { } mon) return;
-        _zones.SetZones(mon.DeviceName, _pending.ToList());
+        _zones.SetZones(mon, _pending.ToList());
         StatusText.Text = $"저장됨 — {mon.DeviceName}, 존 {_pending.Count}개";
     }
 
