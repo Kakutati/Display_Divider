@@ -35,6 +35,13 @@ public sealed class MonitorLayout
     public List<FractionRect> Zones { get; set; } = new();
 }
 
+/// <summary>이름 붙은 존 레이아웃 템플릿.</summary>
+public sealed class ZoneTemplate
+{
+    public string Name { get; set; } = "";
+    public List<FractionRect> Zones { get; set; } = new();
+}
+
 /// <summary>특정 앱의 테두리 없는 전체화면 창을 지정 존에 가두는 규칙.</summary>
 public sealed class AppRule
 {
@@ -74,6 +81,9 @@ public sealed class LayoutConfig
 
     /// <summary>앱별 전체화면 가두기 규칙.</summary>
     public List<AppRule> Rules { get; set; } = new();
+
+    /// <summary>사용자 정의 존 레이아웃 템플릿 (비율 기반이라 모니터에 무관하게 재사용 가능).</summary>
+    public List<ZoneTemplate> Templates { get; set; } = new();
 
     public List<MonitorLayout> Monitors { get; set; } = new();
 }

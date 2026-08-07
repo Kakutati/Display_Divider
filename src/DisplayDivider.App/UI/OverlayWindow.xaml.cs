@@ -90,6 +90,20 @@ public partial class OverlayWindow : Window
             Canvas.SetLeft(rect, (z.X - _monitorBounds.X) / scale + 2);
             Canvas.SetTop(rect, (z.Y - _monitorBounds.Y) / scale + 2);
             ZoneCanvas.Children.Add(rect);
+
+            // 존 번호 (중앙) — 드래그 중 목표 존을 알아보기 쉽게
+            var number = new TextBlock
+            {
+                Text = (i + 1).ToString(),
+                FontSize = 28,
+                FontWeight = FontWeights.Bold,
+                Foreground = new SolidColorBrush(Color.FromArgb(
+                    i == _highlight ? (byte)0xE0 : (byte)0x70, 0x3B, 0x82, 0xF6)),
+            };
+            number.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+            Canvas.SetLeft(number, (z.X - _monitorBounds.X + z.Width / 2.0) / scale - number.DesiredSize.Width / 2);
+            Canvas.SetTop(number, (z.Y - _monitorBounds.Y + z.Height / 2.0) / scale - number.DesiredSize.Height / 2);
+            ZoneCanvas.Children.Add(number);
         }
 
         if (_hint is not null && _zones.Count > 0)

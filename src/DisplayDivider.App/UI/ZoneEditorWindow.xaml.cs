@@ -34,6 +34,7 @@ public partial class ZoneEditorWindow : Window
         _zones = zones;
         InitializeComponent();
         LoadMonitors();
+        RefreshTemplates();
     }
 
     MonitorInfo? SelectedMonitor =>
@@ -96,6 +97,85 @@ public partial class ZoneEditorWindow : Window
         {
             StatusText.Text = "템플릿 오류: " + ex.Message;
         }
+    }
+
+    // ── 사용자 템플릿 저장/불러오기 ────────────────────────────────────
+
+    void RefreshTemplates()
+    {
+        var current = TemplateCombo.Text;
+        TemplateCombo.Items.Clear();
+        foreach (var template in _zones.Config.Templates)
+            TemplateCombo.Items.Add(template.Name);
+        TemplateCombo.Text = current;
+    }
+
+    ZoneTemplate? FindTemplate(string name) =>
+        _zones.Config.Templates.FirstOrDefault(t =>
+            string.Equals(t.Name, name, StringComparison.OrdinalIgnoreCase));
+
+    void TemplateSave_Click(object sender, RoutedEventArgs e)
+    {
+        var name = TemplateCombo.Text.Trim();
+        if (name.Length == 0)
+        {
+            StatusText.Text = "템플릿 이름을 입력하세요";
+            return;
+        }
+        if (_pending.Count == 0)
+        {
+            StatusText.Text = "저장할 존이 없습니다 — 먼저 레이아웃을 만드세요";
+            return;
+        }
+
+        var existing = FindTemplate(name);
+        if (existing is not null)
+        {
+            existing.Zones = new List<FractionRect>(_pending);
+            StatusText.Text = $"템플릿 '{existing.Name}' 덮어씀 (존 {_pending.Count}개)";
+        }
+        else
+        {
+            _zones.Config.Templates.Add(new ZoneTemplate
+            {
+                Name = name,
+                Zones = new List<FractionRect>(_pending),
+            });
+            StatusText.Text = $"템플릿 '{name}' 저장됨 (존 {_pending.Count}개)";
+        }
+        _zones.Save();
+        RefreshTemplates();
+        TemplateCombo.Text = name;
+    }
+
+    void TemplateLoad_Click(object sender, RoutedEventArgs e)
+    {
+        var name = TemplateCombo.Text.Trim();
+        if (FindTemplate(name) is not { } template)
+        {
+            StatusText.Text = name.Length == 0 ? "불러올 템플릿을 선택하세요" : $"'{name}' 템플릿이 없습니다";
+            return;
+        }
+        _pending = new List<FractionRect>(template.Zones);
+        _selected = -1;
+        SetPendingStatus($"템플릿 '{template.Name}' 불러옴 (존 {_pending.Count}개)");
+        RedrawPreview();
+        UpdateSizeBoxes();
+    }
+
+    void TemplateDelete_Click(object sender, RoutedEventArgs e)
+    {
+        var name = TemplateCombo.Text.Trim();
+        if (FindTemplate(name) is not { } template)
+        {
+            StatusText.Text = name.Length == 0 ? "삭제할 템플릿을 선택하세요" : $"'{name}' 템플릿이 없습니다";
+            return;
+        }
+        _zones.Config.Templates.Remove(template);
+        _zones.Save();
+        TemplateCombo.Text = "";
+        RefreshTemplates();
+        StatusText.Text = $"템플릿 '{template.Name}' 삭제됨";
     }
 
     // ── 수동 편집: 분할 / 삭제 ─────────────────────────────────────────

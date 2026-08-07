@@ -73,6 +73,17 @@ public sealed class TrayIcon : IDisposable
             zones.Save();
         };
 
+        var startupItem = new WF.ToolStripMenuItem("Windows 시작 시 자동 실행")
+        {
+            Checked = StartupService.IsEnabled(),
+            CheckOnClick = true,
+        };
+        startupItem.CheckedChanged += (_, _) =>
+        {
+            if (!StartupService.SetEnabled(startupItem.Checked))
+                startupItem.Checked = false; // 등록 실패 시 체크 되돌림
+        };
+
         var reloadItem = new WF.ToolStripMenuItem("레이아웃 다시 읽기");
         reloadItem.Click += (_, _) => reload();
 
@@ -88,6 +99,7 @@ public sealed class TrayIcon : IDisposable
         menu.Items.Add(fullscreenItem);
         menu.Items.Add(workAreaItem);
         menu.Items.Add(new WF.ToolStripSeparator());
+        menu.Items.Add(startupItem);
         menu.Items.Add(reloadItem);
         menu.Items.Add(exitItem);
 

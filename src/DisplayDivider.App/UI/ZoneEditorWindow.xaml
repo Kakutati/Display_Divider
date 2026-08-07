@@ -2,12 +2,13 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Display Divider — 존 편집"
-        Width="680" Height="580"
+        Width="720" Height="660" MinWidth="640" MinHeight="540"
         WindowStartupLocation="CenterScreen"
+        Background="{StaticResource WindowBg}"
+        FontSize="13"
         PreviewKeyDown="Window_PreviewKeyDown">
-    <Grid Margin="14">
+    <Grid Margin="16">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -15,44 +16,66 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
+        <!-- 모니터 선택 -->
         <DockPanel Grid.Row="0">
-            <TextBlock Text="모니터" VerticalAlignment="Center" Margin="0,0,8,0"/>
+            <TextBlock Text="모니터" VerticalAlignment="Center" Margin="0,0,10,0"
+                       FontWeight="SemiBold" Foreground="{StaticResource TextPrimary}"/>
             <ComboBox x:Name="MonitorCombo" SelectionChanged="MonitorCombo_SelectionChanged"/>
         </DockPanel>
 
-        <WrapPanel Grid.Row="1" Margin="0,12,0,0">
-            <TextBlock Text="템플릿:" VerticalAlignment="Center" Margin="0,0,8,6" Foreground="#606060"/>
-            <Button Content="2분할 (좌/우)" Tag="cols:1,1" Click="Preset_Click" Padding="10,5" Margin="0,0,6,6"/>
-            <Button Content="3분할 (3열)" Tag="cols:1,1,1" Click="Preset_Click" Padding="10,5" Margin="0,0,6,6"/>
-            <Button Content="2분할 (상/하)" Tag="rows:1,1" Click="Preset_Click" Padding="10,5" Margin="0,0,6,6"/>
-            <Button Content="2 × 2" Tag="grid:2,2" Click="Preset_Click" Padding="10,5" Margin="0,0,6,6"/>
-            <Button Content="70 : 30" Tag="cols:70,30" Click="Preset_Click" Padding="10,5" Margin="0,0,6,6"/>
-        </WrapPanel>
+        <!-- 레이아웃 시작점: 빠른 분할 + 내 템플릿 -->
+        <Border Grid.Row="1" Style="{StaticResource Card}">
+            <StackPanel>
+                <TextBlock Text="빠른 분할" Style="{StaticResource SectionLabel}"/>
+                <WrapPanel>
+                    <Button Content="2분할 (좌/우)" Tag="cols:1,1" Click="Preset_Click" Margin="0,0,6,6"/>
+                    <Button Content="3분할 (3열)" Tag="cols:1,1,1" Click="Preset_Click" Margin="0,0,6,6"/>
+                    <Button Content="2분할 (상/하)" Tag="rows:1,1" Click="Preset_Click" Margin="0,0,6,6"/>
+                    <Button Content="2 × 2" Tag="grid:2,2" Click="Preset_Click" Margin="0,0,6,6"/>
+                    <Button Content="70 : 30" Tag="cols:70,30" Click="Preset_Click" Margin="0,0,6,6"/>
+                </WrapPanel>
 
-        <WrapPanel Grid.Row="2">
-            <TextBlock Text="수동 편집:" VerticalAlignment="Center" Margin="0,0,8,6" Foreground="#606060"/>
-            <Button Content="선택 존 좌|우 분할" Click="SplitH_Click" Padding="10,5" Margin="0,0,6,6"/>
-            <Button Content="선택 존 상/하 분할" Click="SplitV_Click" Padding="10,5" Margin="0,0,6,6"/>
-            <Button Content="선택 존 삭제" Click="Delete_Click" Padding="10,5" Margin="0,0,6,6"/>
-            <Button Content="선택 존과 병합…" Click="Merge_Click" Padding="10,5" Margin="0,0,6,6"/>
-            <StackPanel Orientation="Horizontal" Margin="8,0,0,6">
-                <TextBlock Text="선택 존 크기" VerticalAlignment="Center"/>
-                <TextBox x:Name="ZoneWBox" Width="62" Margin="6,0,4,0" VerticalContentAlignment="Center" KeyDown="SizeBox_KeyDown"/>
-                <TextBlock Text="×" VerticalAlignment="Center"/>
-                <TextBox x:Name="ZoneHBox" Width="62" Margin="4,0,6,0" VerticalContentAlignment="Center" KeyDown="SizeBox_KeyDown"/>
-                <ComboBox x:Name="UnitCombo" Width="58" VerticalContentAlignment="Center" SelectionChanged="UnitCombo_SelectionChanged">
-                    <ComboBoxItem Content="px" IsSelected="True"/>
-                    <ComboBoxItem Content="%"/>
-                </ComboBox>
-                <Button Content="적용" Click="SizeApply_Click" Padding="10,5" Margin="6,0,0,0"/>
+                <TextBlock Text="내 템플릿" Style="{StaticResource SectionLabel}" Margin="0,6,0,7"/>
+                <WrapPanel>
+                    <ComboBox x:Name="TemplateCombo" Width="180" IsEditable="True" Margin="0,0,6,0"
+                              ToolTip="불러올 템플릿을 고르거나, 저장할 이름을 입력"/>
+                    <Button Content="불러오기" Click="TemplateLoad_Click" Margin="0,0,6,0"/>
+                    <Button Content="현재 레이아웃 저장" Click="TemplateSave_Click" Margin="0,0,6,0"/>
+                    <Button Content="삭제" Click="TemplateDelete_Click"/>
+                </WrapPanel>
             </StackPanel>
-        </WrapPanel>
+        </Border>
 
-        <TextBlock Grid.Row="3" Margin="0,2,0,0" Foreground="#909090" FontSize="12"
-                   Text="존 클릭 = 선택 · 경계선 드래그 = 잡은 구간만 조절 · Shift+드래그 = 경계선 전체 이동"/>
+        <!-- 수동 편집 -->
+        <Border Grid.Row="2" Style="{StaticResource Card}">
+            <StackPanel>
+                <TextBlock Text="수동 편집" Style="{StaticResource SectionLabel}"/>
+                <WrapPanel>
+                    <Button Content="좌|우 분할" Click="SplitH_Click" Margin="0,0,6,6"/>
+                    <Button Content="상/하 분할" Click="SplitV_Click" Margin="0,0,6,6"/>
+                    <Button Content="존 삭제" Click="Delete_Click" Margin="0,0,6,6"/>
+                    <Button Content="존 병합…" Click="Merge_Click" Margin="0,0,14,6"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                        <TextBlock Text="선택 존 크기" VerticalAlignment="Center" Foreground="{StaticResource TextSecondary}"/>
+                        <TextBox x:Name="ZoneWBox" Width="64" Margin="8,0,4,0" KeyDown="SizeBox_KeyDown"/>
+                        <TextBlock Text="×" VerticalAlignment="Center" Foreground="{StaticResource TextSecondary}"/>
+                        <TextBox x:Name="ZoneHBox" Width="64" Margin="4,0,6,0" KeyDown="SizeBox_KeyDown"/>
+                        <ComboBox x:Name="UnitCombo" Width="58" SelectionChanged="UnitCombo_SelectionChanged">
+                            <ComboBoxItem Content="px" IsSelected="True"/>
+                            <ComboBoxItem Content="%"/>
+                        </ComboBox>
+                        <Button Content="적용" Click="SizeApply_Click" Margin="6,0,0,0"/>
+                    </StackPanel>
+                </WrapPanel>
+                <TextBlock Foreground="#9AA1AB" FontSize="11.5"
+                           Text="존 클릭 = 선택 · 경계선 드래그 = 잡은 구간만 조절 · Shift+드래그 = 경계선 전체 이동"/>
+            </StackPanel>
+        </Border>
 
-        <Border Grid.Row="4" Margin="0,8,0,12" BorderBrush="#808080" BorderThickness="1" Background="#F2F2F2">
-            <Canvas x:Name="PreviewCanvas" Background="Transparent" ClipToBounds="True"
+        <!-- 미리보기 -->
+        <Border Grid.Row="3" Margin="0,10,0,0" Background="White" CornerRadius="6"
+                BorderBrush="{StaticResource CardBorder}" BorderThickness="1">
+            <Canvas x:Name="PreviewCanvas" Background="Transparent" ClipToBounds="True" Margin="4"
                     SizeChanged="PreviewCanvas_SizeChanged"
                     MouseLeftButtonDown="PreviewCanvas_MouseLeftButtonDown"
                     MouseMove="PreviewCanvas_MouseMove"
@@ -60,13 +83,15 @@
                     MouseLeave="PreviewCanvas_MouseLeave"/>
         </Border>
 
-        <DockPanel Grid.Row="5">
-            <TextBlock x:Name="StatusText" VerticalAlignment="Center" Foreground="#3B82F6"/>
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button Content="분할 해제" Click="Clear_Click" Padding="12,6" Margin="0,0,8,0"/>
-                <Button Content="저장" Click="Save_Click" Padding="18,6" Margin="0,0,8,0" FontWeight="Bold"/>
-                <Button Content="닫기" Click="CloseBtn_Click" Padding="12,6"/>
+        <!-- 하단 바 -->
+        <DockPanel Grid.Row="4" Margin="0,12,0,0">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" DockPanel.Dock="Right">
+                <Button Content="분할 해제" Click="Clear_Click" Margin="0,0,8,0"/>
+                <Button Content="저장" Click="Save_Click" Style="{StaticResource PrimaryButton}" Margin="0,0,8,0"/>
+                <Button Content="닫기" Click="CloseBtn_Click"/>
             </StackPanel>
+            <TextBlock x:Name="StatusText" VerticalAlignment="Center" Margin="0,0,10,0"
+                       Foreground="{StaticResource AccentBrush}" TextTrimming="CharacterEllipsis"/>
         </DockPanel>
     </Grid>
 </Window>
