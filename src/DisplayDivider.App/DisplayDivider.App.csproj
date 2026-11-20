@@ -10,7 +10,12 @@
     <RootNamespace>DisplayDivider.App</RootNamespace>
     <AssemblyName>DisplayDivider</AssemblyName>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\app.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\app.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <!-- WinForms 암시적 using이 WPF 타입(Application, Brush 등)과 충돌하므로 제거 -->

@@ -121,12 +121,20 @@ public sealed class TrayIcon : IDisposable
 
         _icon = new WF.NotifyIcon
         {
-            Icon = System.Drawing.SystemIcons.Application,
+            Icon = LoadIcon(),
             Text = StartupService.IsElevated ? "Display Divider (관리자)" : "Display Divider",
             ContextMenuStrip = menu,
             Visible = true,
         };
         _icon.DoubleClick += (_, _) => openEditor();
+    }
+
+    /// <summary>트레이 크기(DPI 반영)에 맞는 프레임을 골라 로드 — 32px 축소보다 선명.</summary>
+    static System.Drawing.Icon LoadIcon()
+    {
+        var res = System.Windows.Application.GetResourceStream(new Uri("pack://application:,,,/Assets/app.ico"));
+        using var stream = res.Stream;
+        return new System.Drawing.Icon(stream, WF.SystemInformation.SmallIconSize);
     }
 
     public void Dispose()
