@@ -10,6 +10,13 @@ public partial class App : Application
     {
         base.OnStartup(e);
 
+        // "관리자 권한으로 재시작": 이전 인스턴스가 핫키/훅을 놓을 때까지 대기
+        if (e.Args is ["--after", var pidArg] && int.TryParse(pidArg, out var pid))
+        {
+            try { System.Diagnostics.Process.GetProcessById(pid).WaitForExit(5000); }
+            catch (ArgumentException) { } // 이미 종료됨
+        }
+
         DispatcherUnhandledException += (_, args) =>
         {
             MessageBox.Show(args.Exception.Message, "Display Divider 오류",

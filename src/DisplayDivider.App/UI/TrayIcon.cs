@@ -73,15 +73,30 @@ public sealed class TrayIcon : IDisposable
             zones.Save();
         };
 
-        var startupItem = new WF.ToolStripMenuItem("Windows 시작 시 자동 실행")
+        var startupItem = new WF.ToolStripMenuItem(StartupService.IsElevated
+            ? "Windows 시작 시 자동 실행 (관리자 권한)"
+            : "Windows 시작 시 자동 실행")
         {
             Checked = StartupService.IsEnabled(),
-            CheckOnClick = true,
         };
-        startupItem.CheckedChanged += (_, _) =>
+        startupItem.Click += (_, _) =>
         {
-            if (!StartupService.SetEnabled(startupItem.Checked))
-                startupItem.Checked = false; // 등록 실패 시 체크 되돌림
+            if (!StartupService.SetEnabled(!startupItem.Checked))
+                WF.MessageBox.Show(StartupService.IsElevated
+                        ? "자동 실행 설정을 바꾸지 못했습니다."
+                        : "자동 실행 설정을 바꾸지 못했습니다.\n관리자 권한으로 등록된 항목은 관리자 권한으로 재시작한 뒤 해제하세요.",
+                    "Display Divider");
+            startupItem.Checked = StartupService.IsEnabled(); // 실제 상태 반영
+        };
+
+        // 관리자 권한 창은 UIPI 때문에 일반 권한 프로세스가 이동/크기 변경할 수 없다.
+        var elevateItem = new WF.ToolStripMenuItem("관리자 권한으로 재시작")
+        {
+            Visible = !StartupService.IsElevated,
+        };
+        elevateItem.Click += (_, _) =>
+        {
+            if (StartupService.StartElevated()) exit();
         };
 
         var reloadItem = new WF.ToolStripMenuItem("레이아웃 다시 읽기");
@@ -100,13 +115,14 @@ public sealed class TrayIcon : IDisposable
         menu.Items.Add(workAreaItem);
         menu.Items.Add(new WF.ToolStripSeparator());
         menu.Items.Add(startupItem);
+        menu.Items.Add(elevateItem);
         menu.Items.Add(reloadItem);
         menu.Items.Add(exitItem);
 
         _icon = new WF.NotifyIcon
         {
             Icon = System.Drawing.SystemIcons.Application,
-            Text = "Display Divider",
+            Text = StartupService.IsElevated ? "Display Divider (관리자)" : "Display Divider",
             ContextMenuStrip = menu,
             Visible = true,
         };
